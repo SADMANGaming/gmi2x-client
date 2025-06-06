@@ -8,7 +8,7 @@
 A client extension for [CoDUO](https://en.wikipedia.org/wiki/Call_of_Duty:_United_Offensive)
 ### Adding security, fixes, and features
 Supported game version: **COD UO 1.151**
-Found bugs? Join our discord: [Click Here]()
+Found bugs? Join our discord: [Click Here](https://discord.gg/kMM6NaqeDB)
 ___
 
 
