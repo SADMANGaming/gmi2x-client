@@ -1,4 +1,8 @@
 # gmi2x-client 
+
+Adding security, fixes, and features
+Supported game version: **COD UO 1.151**
+
 [GMI2X-CLIENT] A client extension for COD UO 1.51
 
 - The injector (gmi2x-client.exe) might be detected as a virus by antivirus because of the way it injects.
@@ -6,8 +10,6 @@
 - * If you are trying to fork/redistribute DO NOT remove the credits also give the credits to me too.
   
 A client extension for [CoDUO](https://en.wikipedia.org/wiki/Call_of_Duty:_United_Offensive)
-### Adding security, fixes, and features
-Supported game version: **COD UO 1.151**
 
 Found bugs? Join our discord: [Click Here](https://discord.gg/kMM6NaqeDB)
 ___
