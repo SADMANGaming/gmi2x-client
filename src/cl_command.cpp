@@ -11,6 +11,7 @@ void Cmd_LookBack()
 	cl_viewangles[YAW]+= 180;
 }
 
+
 void Cmd_Minimize()
 {
 	ShowWindow(*gameWindow, SW_MINIMIZE);

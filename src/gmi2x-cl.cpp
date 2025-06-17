@@ -3,11 +3,26 @@
 #include <ImageHlp.h>
 #include <stdint.h> 
 #include <stdio.h>
+#include <stdbool.h>
 
 static void(*Com_Quit_f)() = (void(*)())0x0043a2c0;
+extern "C" bool bClosing = false;
+
+void Sys_Unload() {
+	bClosing = true;
+	static bool unloaded = false;
+
+	if (unloaded)
+		return;
+	unloaded = true;
+
+	void CL_DiscordShutdown();
+	CL_DiscordShutdown();
+}
 
 typedef HMODULE(WINAPI* LoadLibraryA_t)(LPCSTR lpLibFileName);
 LoadLibraryA_t orig_LoadLibraryA = NULL;
+
 
 HMODULE WINAPI hLoadLibraryA(LPCSTR lpLibFileName) {
     HMODULE hModule = orig_LoadLibraryA(lpLibFileName);
@@ -113,6 +128,7 @@ LONG WINAPI CrashHandler(EXCEPTION_POINTERS* ExceptionInfo)
     FILE* log = fopen("gmi2x-cl_log.txt", "w");
     if (log)
     {
+        fprintf(log, "GMI2x-Client\n");
         fprintf(log, "Crash caught!\n");
         fprintf(log, "Exception code: 0x%08X\n", ExceptionInfo->ExceptionRecord->ExceptionCode);
         fprintf(log, "Exception address: %p\n", ExceptionInfo->ExceptionRecord->ExceptionAddress);
@@ -123,17 +139,37 @@ LONG WINAPI CrashHandler(EXCEPTION_POINTERS* ExceptionInfo)
     // Exit process or pass control to the next handler
     return EXCEPTION_EXECUTE_HANDLER;
 }
+static bool unlock_client_structure() {
+    if (!XUNLOCK((void*)cls_realtime, sizeof(int))) return false;
+    if (!XUNLOCK((void*)cls_state, sizeof(int))) return false;
+    if (!XUNLOCK((void*)clc_demoplaying, 4)) return false;
+    if (!XUNLOCK((void*)cls_numglobalservers, sizeof(int))) return false;
+    if (!XUNLOCK((void*)cls_pingUpdateSource, sizeof(int))) return false;
+    return true;
+}
 
 bool applyHooks()
 {
-//	XUNLOCK((void*)0x4f45b0, 1);
+	XUNLOCK((void*)0x4f45b0, 1);
 	memset((void*)0x4f45b0, 0x00, 1);
 
 	patch_opcode_loadlibrary();
-//    unlock_client_structure();
+    __call(0x46B565, (int)CleanupExit);
+
+	int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+	__call(0x56FB98, (int)WinMain);
+
+    unlock_client_structure(); // make some client cls_ structure members writeable etc
+
+    void CL_FrameStub(int msec);
+	//void CL_Frame(int msec);
+	__call(0x43C8C3, (int)CL_FrameStub/*CL_Frame*/);
+
+
 
 	return true;
 }
+
 
 void Main_UnprotectModule(HMODULE hModule)
 {
@@ -143,6 +179,25 @@ void Main_UnprotectModule(HMODULE hModule)
 	SIZE_T size = ntHeader->OptionalHeader.SizeOfImage;
 	DWORD oldProtect;
 	VirtualProtect((LPVOID)hModule, size, PAGE_EXECUTE_READWRITE, &oldProtect);
+}
+
+/*DWORD WINAPI DiscordThread(LPVOID lpParam) {
+    int startDiscord();
+    startDiscord();  // Your existing function
+    return 0;
+}*/
+
+HINSTANCE hInst;
+static int(__stdcall *mainx)(HINSTANCE, HINSTANCE, LPSTR, int) = (int(__stdcall*)(HINSTANCE, HINSTANCE, LPSTR, int))0x46C5C0;
+char sys_cmdline[MAX_STRING_CHARS];
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	hInst = hInstance;
+	strncpy(sys_cmdline, lpCmdLine, sizeof(sys_cmdline) - 1);
+
+        void CL_DiscordInitialize();
+	    CL_DiscordInitialize();  
+
+	return mainx(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -173,15 +228,26 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 #endif
 #endif
 */
+
+
 		if (!applyHooks())
 		{
-			MessageBoxA(NULL, "Hooking failed", "c1cx", MB_OK | MB_ICONERROR);
+			MessageBoxA(NULL, "Hooking failed", "GMI2x-Client", MB_OK | MB_ICONERROR);
 			Com_Quit_f();
 		}
 
 		void _CL_Init();
 	    __call(0x0043c166, (int)_CL_Init);
 	    __call(0x0043c7c7, (int)_CL_Init);
+
+
+//	    void CL_DiscordInitialize();
+//	    CL_DiscordInitialize();
+
+
+
+        //DisableThreadLibraryCalls(hModule); // optional optimization
+        //CreateThread(nullptr, 0, CL_DiscordInitialize, nullptr, 0, nullptr);
 
 	}
 	break;

@@ -32,14 +32,14 @@ static void __jmp(unsigned int off, unsigned int loc)
 	VirtualProtect((void*)off, 5, tmp, &tmp);
 }
 
-static void XUNLOCK(void* addr, size_t len)
+static bool XUNLOCK(void* addr, size_t len)
 {
 	DWORD tmp;
-	VirtualProtect(addr, len, PAGE_EXECUTE_READWRITE, &tmp);
+	return VirtualProtect(addr, len, PAGE_EXECUTE_READWRITE, &tmp);
 }
 
 void hook_jmp(int from, int to);
-
+void CleanupExit();
 class cHook
 {
 public:

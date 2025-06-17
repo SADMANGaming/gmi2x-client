@@ -1,0 +1,12 @@
+LIBRARY discord-rpc.dll
+EXPORTS
+Discord_Initialize
+Discord_Shutdown
+Discord_UpdatePresence
+Discord_RunCallbacks
+Discord_Register
+Discord_Respond
+Discord_ClearPresence
+Discord_Connect
+Discord_Disconnect
+Discord_UpdateHandlers

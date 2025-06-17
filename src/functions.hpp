@@ -1,7 +1,6 @@
 #pragma once
 
 #include <windows.h>
-
 #define MAX_MSGLEN 16384
 
 
@@ -34,6 +33,7 @@
 #define BIG_INFO_KEY        8192
 #define BIG_INFO_VALUE      8192
 
+#define Q_IsColorString( p )  ( p && *( p ) == Q_COLOR_ESCAPE && *( ( p ) + 1 ) && *( ( p ) + 1 ) != Q_COLOR_ESCAPE )
 
 #define Q_COLOR_ESCAPE  '^'
 #define Q_IsColorString( p )  ( p && *( p ) == Q_COLOR_ESCAPE && *( ( p ) + 1 ) && *( ( p ) + 1 ) != Q_COLOR_ESCAPE )
@@ -51,6 +51,7 @@
 
 #define cs0 (clc_stringData + clc_stringOffsets[0])
 #define cs1 (clc_stringData + clc_stringOffsets[1])
+
 
 
 #define MAX_QPATH 64
@@ -269,6 +270,8 @@ extern Cvar_Get_t Cvar_Get;
 
 extern Cvar_FindVar_t Cvar_FindVar;
 
+
+
 char* Cvar_VariableString(const char*);
 int Cvar_VariableIntegerValue(const char* var_name);
 float Cvar_VariableValue(const char *var_name);
@@ -302,3 +305,9 @@ typedef void(*Cmd_AddCommand_t)(const char*, xfunc);
 extern Cmd_AddCommand_t Cmd_AddCommand;
 
 char* va(const char* format, ...);
+
+void Q_strncpyz(char *dest, const char *src, int destsize);
+char* Q_CleanStr(char* string, bool colors = false);
+char* Com_CleanHostname(char* hostname, bool colors);
+char* Com_CleanMapname(char* mapname);
+const char* Com_GametypeName(char* gt, bool colors = false);

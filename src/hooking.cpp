@@ -23,3 +23,12 @@ void cHook::unhook()
 {
     memcpy((void*)from, (void*)oldCode, 5);
 }
+
+void CleanupExit() {
+	void(*o)();
+	*(UINT32*)&o = 0x40F8E0;
+	o();
+
+	void Sys_Unload();
+	Sys_Unload();
+}

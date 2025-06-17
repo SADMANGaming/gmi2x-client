@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include "functions.hpp"
+#include <cctype>
 
 Com_DPrintf_t Com_DPrintf = (Com_DPrintf_t)0x439D20;
 Com_Printf_t Com_Printf = (Com_Printf_t)0x439CC0;
@@ -290,4 +291,138 @@ void Info_SetValueForKey(char *s, const char *key, const char *value) {
 	}
 
 	strcat(s, newi);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Q_strncpyz(char *dest, const char *src, int destsize) {
+	if (!src) {
+		Com_Error(ERR_FATAL, "Q_strncpyz: NULL src");
+	}
+	if (destsize < 1) {
+		Com_Error(ERR_FATAL, "Q_strncpyz: destsize < 1");
+	}
+
+	strncpy(dest, src, destsize - 1);
+	dest[destsize - 1] = 0;
+}
+
+char* Q_CleanStr(char* string, bool colors) {
+	char* d;
+	char* s;
+	int c;
+
+	s = string;
+	d = string;
+	while ((c = *s) != 0) {
+		if (Q_IsColorString(s) && !colors) {
+			s++;
+		}
+		else if (c >= 0x20 && c <= 0x7E) {
+			*d++ = c;
+		}
+		s++;
+	}
+	*d = '\0';
+
+	return string;
+}
+
+
+
+#define MAX_HOSTNAME_LENGTH 1024
+char* Com_CleanHostname(char* string, bool colors) {
+	static char hostname[MAX_HOSTNAME_LENGTH];
+	Q_strncpyz(hostname, string, sizeof(hostname));
+
+	// Remove symbols (and colors for RPC).
+	Q_CleanStr(hostname, colors);
+
+	// Check if hostname is empty when symbols are removed.
+	if (hostname[0] == '\0') strncpy(hostname, "Unnamed Server", sizeof(hostname));
+
+	// Remove leading spaces.
+	int i = 0;
+	while (isspace(hostname[0]) || hostname[0] == '!' || hostname[0] == '\'') {
+		i = 0;
+		while (hostname[i]) {
+			hostname[i] = hostname[i + 1];
+			i++;
+		}
+	}
+
+	// Check if hostname is empty when leading spaces are removed.
+	if (hostname[0] == '\0') strncpy(hostname, "Unnamed Server", sizeof(hostname));
+
+	// Check if hostname is empty when colors are removed.
+	if (colors) {
+		char tempHostname[MAX_HOSTNAME_LENGTH];
+		Q_strncpyz(tempHostname, hostname, sizeof(tempHostname));
+		Q_CleanStr(tempHostname, false);
+		if (tempHostname[0] == '\0') strncpy(hostname, "Unnamed Server", sizeof(hostname));
+	}
+
+	return hostname;
+}
+
+char* Com_CleanMapname(char* mapname) {
+	for (int i = 0; mapname[i]; i++) // All to lowercase.
+		mapname[i] = tolower(mapname[i]);
+
+	if (strstr(mapname, "mp_") != NULL || strstr(mapname, "xp_") != NULL) // Remove mp_ and xp_ prefixes.
+		mapname = mapname + 3;
+
+	mapname[0] = toupper(mapname[0]); // First letter uppercase.
+
+	for (int i = 0; mapname[i]; i++) { // Replace _ with space and uppercase next letter.
+		if (mapname[i] == '_') {
+			mapname[i] = ' ';
+			mapname[i + 1] = toupper(mapname[i + 1]);
+		}
+	}
+
+	return mapname;
+}
+
+const char* GetStockGametypeName(char* gt) {
+	char s[64] = { 0 };
+	Q_strncpyz(s, gt, sizeof(s));
+
+	if (!strcmp(s, "dm"))
+		return "Deathmatch";
+	else if (!strcmp(s, "tdm"))
+		return "Team Deathmatch";
+	else if (!strcmp(s, "re"))
+		return "Retrieval";
+	else if (!strcmp(s, "bel"))
+		return "Behind Enemy Lines";
+	else if (!strcmp(s, "sd"))
+		return "Search & Destroy";
+
+	return nullptr;
+}
+
+const char* Com_GametypeName(char* gt, bool colors) { // Keep colors for loading screen, remove for RPC.
+	if (!gt || !*gt) return "Unknown Gametype";
+
+	const char* name = GetStockGametypeName(gt);
+	if (!name) name = gt;
+
+	if (name)
+		return name;
+	else
+		return (colors) ? gt : Q_CleanStr(gt);
 }

@@ -1,0 +1,1 @@
+void CL_DiscordFrame();
