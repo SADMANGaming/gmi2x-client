@@ -22,6 +22,7 @@ ___
 - FPS warning: if your fps is less than 59 it will show the fps in red color (like CoD 2)
 - Bouncing
 - cg_drawWeaponSelection cvar: If set to 1 it will not show weapon selection hud on top)
+- Discord RPC
 ___
 
 
